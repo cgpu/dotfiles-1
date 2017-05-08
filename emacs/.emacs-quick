@@ -1,0 +1,112 @@
+;; -*- mode: emacs-lisp -*-
+
+;; --------------
+;; -- Settings --
+;; --------------
+(require 'cl)
+(require 'ido)
+(setq show-trailing-whitespace t)
+(menu-bar-mode -1)
+(setq column-number-mode t)
+(setq vc-follow-symlinks t)
+(setq inhibit-startup-message t)
+(normal-erase-is-backspace-mode 1)
+(setq save-abbrevs nil)
+(setq suggest-key-bindings t)
+(put 'upcase-region 'disabled nil)
+(put 'downcase-region 'disabled nil)
+(ido-mode t)
+(local-set-key "%" 'match-paren)
+(setq suggest-key-bindings t)
+(setq vc-follow-symlinks t)
+
+;; ---------------
+;; -- Functions --
+;; ---------------
+(defun key (desc)
+  (or (and window-system (read-kbd-macro desc))
+      (or (cdr (assoc desc real-keyboard-keys))
+	  (read-kbd-macro desc))))
+
+(defun match-paren (arg)
+  "Go to the matching parenthesis if on parenthesis otherwise insert %."
+  (interactive "p")
+  (cond ((looking-at "\\s\(") (forward-list 1) (backward-char 1))
+	((looking-at "\\s\)") (forward-char 1) (backward-list 1))
+	(t (self-insert-command (or arg 1)))))
+
+(defun next5()
+  (interactive)
+  (next-line 5))
+
+(defun prev5()
+  (interactive)
+  (previous-line 5))
+
+(defun delete-word (arg)
+  "Delete characters forward until encountering the end of a word.
+With argument, do this that many times."
+  (interactive "p")
+  (delete-region (point) (progn (forward-word arg) (point))))
+
+(defun backward-delete-word (arg)
+  "Delete characters backward until encountering the end of a word.
+With argument, do this that many times."
+  (interactive "p")
+  (delete-word (- arg)))
+
+(defun back-window ()
+  (interactive)
+  (other-window -1))
+
+(fset 'align-equals "\C-[xalign-regex\C-m=\C-m")
+(fset 'align-colons "\C-[xalign-regex\C-m:\C-m")
+(fset 'orgfix "\C-o\C-n\C-c\C-c")
+(defalias 'qrr 'query-replace-regexp)
+
+;; -----------------
+;; -- Keybindings --
+;; -----------------
+(defvar real-keyboard-keys
+  '(("M-<up>"        . "\M-[1;3A")
+    ("M-<down>"      . "\M-[1;3B")
+    ("M-<right>"     . "\M-[1;3C")
+    ("M-<left>"      . "\M-[1;3D")
+    ("C-<return>"    . "\C-j")
+    ("C-<delete>"    . "\M-[3;5~")
+    ("C-<up>"        . "\M-[1;5A")
+    ("C-<down>"      . "\M-[1;5B")
+    ("C-<right>"     . "\M-[1;5C")
+    ("C-<left>"      . "\M-[1;5D"))
+  "An assoc list of pretty key strings
+and their terminal equivalents.")
+
+(global-set-key (key "M-<right>")  'windmove-right)
+(global-set-key (key "M-<left>")   'windmove-left)
+(global-set-key (key "M-<up>")     'windmove-up)
+(global-set-key (key "M-<down>")   'windmove-down)
+(global-set-key (quote [27 up]) (quote windmove-up))
+(global-set-key (quote [27 down]) (quote windmove-down))
+(global-set-key (quote [27 left]) (quote windmove-left))
+(global-set-key (quote [27 right]) (quote windmove-right))
+
+(global-set-key "\C-x\C-m" 'execute-extended-command)
+(global-set-key "\M-R" 'revert-buffer)
+(global-set-key "\C-xj" 'gud-tbreak)
+(global-set-key "\C-o" 'org-cycle)
+(global-set-key "\M-o" 'undo)
+(global-set-key "\C-c;" 'comment-or-uncomment-region)
+(global-set-key "\C-xi" 'back-window)
+(global-set-key "\C-x\C-d" 'edebug-eval-top-level-form)
+(global-set-key "\M-n" 'next5)
+(global-set-key "\M-p" 'prev5)
+(global-set-key "\M-o" 'other-window)
+(global-set-key "\M-i" 'back-window)
+(global-set-key "\C-z" 'zap-to-char)
+(global-set-key "\C-\M-z" 'suspend-emacs)
+(global-set-key "\C-h" 'backward-delete-char)
+(global-set-key "\M-d" 'delete-word)
+(global-set-key "\M-h" 'backward-delete-word)
+(global-set-key "\M-u" 'help-command)
+(global-set-key "\M-=" 'align-equals)
+(global-set-key "\M-:" 'align-colons)
