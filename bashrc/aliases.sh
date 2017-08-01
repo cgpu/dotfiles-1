@@ -4,6 +4,7 @@
   eval "$(thefuck --alias)"
 
  # Listing, directories, and motion
+ alias ls="ls --color"
  alias ll="ls -alrtF --color"
  alias la="ls -A --color"
  alias l="ls -CF --color"
