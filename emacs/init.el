@@ -48,6 +48,7 @@
                       json-mode
                       react-snippets
                       ;; jsx-mode
+                      groovy-mode
                       exec-path-from-shell
                       flycheck
                       flymake
@@ -212,60 +213,65 @@ and their terminal equivalents.")
 
 (with-eval-after-load 'go-mode
   (require 'flymake-go)
-  (require 'go-autocomplete))
+  (require 'go-autocomplete)
+  (require 'go-guru))
 
-(defun goimports-before-save ()
-    (interactive)
-    (when (eq major-mode 'go-mode) (goimports)))
+;; (defun goimports-before-save ()
+;;     (interactive)
+;;     (when (eq major-mode 'go-mode) (goimports)))
 
-(defun goimports ()
-  (interactive)
-  (let ((tmpfile (make-temp-file "goimports" nil ".go"))
-        (patchbuf (get-buffer-create "*Goimports patch*"))
-        (errbuf (get-buffer-create "*Goimports Errors*"))
-        (coding-system-for-read 'utf-8)
-        (coding-system-for-write 'utf-8))
+;; (defun goimports ()
+;;   (interactive)
+;;   (let ((tmpfile (make-temp-file "goimports" nil ".go"))
+;;         (patchbuf (get-buffer-create "*Goimports patch*"))
+;;         (errbuf (get-buffer-create "*Goimports Errors*"))
+;;         (coding-system-for-read 'utf-8)
+;;         (coding-system-for-write 'utf-8))
 
-    (with-current-buffer errbuf
-      (setq buffer-read-only nil)
-      (erase-buffer))
-    (with-current-buffer patchbuf
-      (erase-buffer))
+;;     (with-current-buffer errbuf
+;;       (setq buffer-read-only nil)
+;;       (erase-buffer))
+;;     (with-current-buffer patchbuf
+;;       (erase-buffer))
 
-    (write-region nil nil tmpfile)
+;;     (write-region nil nil tmpfile)
 
-    (if (zerop (call-process "goimports" nil errbuf nil "-w" tmpfile))
-        (if (zerop (call-process-region (point-min) (point-max) "diff" nil patchbuf nil "-n" "-" tmpfile))
-            (progn
-              (kill-buffer errbuf)
-              (message "Buffer is already goimported"))
-          (go--apply-rcs-patch patchbuf)
-          (kill-buffer errbuf)
-          (message "Applied goimports"))
-      (message "Could not apply goimports. Check errors for details")
-      (gofmt--process-errors (buffer-file-name) tmpfile errbuf))
+;;     (if (zerop (call-process "goimports" nil errbuf nil "-w" tmpfile))
+;;         (if (zerop (call-process-region (point-min) (point-max) "diff" nil patchbuf nil "-n" "-" tmpfile))
+;;             (progn
+;;               (kill-buffer errbuf)
+;;               (message "Buffer is already goimported"))
+;;           (go--apply-rcs-patch patchbuf)
+;;           (kill-buffer errbuf)
+;;           (message "Applied goimports"))
+;;       (message "Could not apply goimports. Check errors for details")
+;;       (gofmt--process-errors (buffer-file-name) tmpfile errbuf))
 
-    (kill-buffer patchbuf)
-    (delete-file tmpfile)))
+;;     (kill-buffer patchbuf)
+;;     (delete-file tmpfile)))
 
 (defun my-go-mode-hook ()
   "Go mode hooks."
-  ;; Call Gofmt before saving
-  (add-hook 'before-save-hook 'gofmt-before-save)
-
   ;; Use goimports instead of go-fmt
-  ;; (setq gofmt-command "goimports")
-  (add-hook 'before-save-hook 'goimports-before-save)
+  (setq gofmt-command "goimports")
+
+  ;; Call Gofmt before saving
+  ;; (add-hook 'before-save-hook 'gofmt-before-save)
+  (add-hook 'before-save-hook #'gofmt-before-save)
+
+  ;; (add-hook 'before-save-hook 'goimports-before-save)
   
   ;; Customize compile command to run go build
   (if (not (string-match "go" compile-command))
       (set (make-local-variable 'compile-command)
            "go generate && go build -v && go test -v && go vet"))
   ;; Go oracle
-  (load-file "$GOPATH/src/golang.org/x/tools/cmd/oracle/oracle.el")
+  ;; (load-file "$GOPATH/src/golang.org/x/tools/cmd/oracle/oracle.el")
+
   ;; Godef jump key binding
   (local-set-key (kbd "M-.") 'godef-jump))
 (add-hook 'go-mode-hook 'my-go-mode-hook)
+(add-hook 'go-mode-hook #'go-guru-hl-identifier-mode)
 
 
 ;; --------------
@@ -415,6 +421,14 @@ and their terminal equivalents.")
 (require 'ensime)
 (add-hook 'java-mode-hook 'ensime-mode)
 
+;; --------------
+;; -- Nextflow --
+;; --------------
+
+;; use groovy-mode for .nf files
+(require 'groovy-mode)
+(add-to-list 'auto-mode-alist '("\\.nf$" . groovy-mode))
+
 ;; ------------------
 ;; -- Autocomplete --
 ;; ------------------
@@ -436,7 +450,8 @@ and their terminal equivalents.")
 ;; (define-key yas-minor-mode-map (kbd "\C-c TAB") 'yas-expand)
 
 ;; Load the default configuration
-(require 'auto-complete-config)
+;; (require 'auto-complete-config)
+(require 'auto-complete)
 
 ;; ;; Make sure we can find the dictionaries
 ;; (add-to-list 'ac-dictionary-directories "~/emacs/auto-complete/dict")
@@ -589,3 +604,17 @@ and their terminal equivalents.")
 
 (provide 'init)
 ;;; init.el ends here
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-selected-packages
+   (quote
+    (groovy-mode go-guru go-mode go-autocomplete markdown-mode windresize web-mode smooth-scroll smex scpaste react-snippets paredit magit json-mode js2-mode ido-ubiquitous idle-highlight-mode flymake-go flycheck find-file-in-project exec-path-from-shell ensime better-defaults auto-complete))))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
