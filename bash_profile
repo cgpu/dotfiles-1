@@ -19,4 +19,5 @@ export GOPATH="/Users/$USER/go"
 export EDITOR='emacs -nw'
 export VISUAL='emacs -nw'
 
-. ~/.bashrc
+# Source bashrc
+source ~/.bashrc

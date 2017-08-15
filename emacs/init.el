@@ -30,6 +30,7 @@
                       magit
                       smex
                       scpaste
+		      auto-complete
                       org
                       saveplace
                       ffap
